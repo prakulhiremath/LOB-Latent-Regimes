@@ -1,0 +1,72 @@
+LOB Micro-Regime Early Detection — Summary
+
+Overview
+--------
+This project studies early detection of latent instability in limit order books (LOB) before observable liquidity stress.
+
+A causal three-regime model is used:
+- Regime 0: Stable
+- Regime 1: Latent build-up (hidden deterioration)
+- Regime 2: Stress (observable disruption)
+
+The transition from build-up to stress occurs with a delay, enabling evaluation of early detection.
+
+---
+
+Method
+------
+The proposed detector combines:
+- Probabilistic instability (HMM posterior entropy)
+- Temporal drift (spread, depth dynamics)
+- Structural signals (depth erosion, order flow)
+
+Final detection uses:
+- MAX-trigger fusion across channels
+- Rising-edge detection (onset of instability)
+- Early-detection constraint (ensuring signals precede stress)
+
+---
+
+Evaluation Metrics
+------------------
+- Lead-time: Δ = σ − τ (positive = early detection)
+- Precision: fraction of detections occurring before stress
+- Coverage: fraction of stress events detected early
+
+---
+
+Results
+-------
+Adaptive Trigger (final method):
+- Mean Δ (lead-time): +18.62 steps
+- Precision: 100%
+- Coverage: 52.6%
+
+Other variants:
+- Model: Δ = +14.95 | Precision = 100% | Coverage = 43.2%
+- Multi-Trigger: Δ = +13.15 | Precision = 100% | Coverage = 28.1%
+
+Baselines:
+- Imbalance: Δ = -24.84 | Precision = 54.9% | Coverage = 78.7%
+- Volatility: Δ = -32.02 | Precision = 45.5% | Coverage = 43.3%
+
+---
+
+Key Findings
+------------
+- Latent instability signals exist prior to observable stress.
+- Standard baselines are reactive (negative lead-time).
+- Trigger-based detection enables strictly positive lead-time.
+- A trade-off exists between early detection and coverage.
+- Depth erosion and entropy are the dominant early indicators.
+
+---
+
+Reproducibility
+---------------
+- Implemented in Python (NumPy, scikit-learn, hmmlearn)
+- Tested on:
+  - Google Colab (NVIDIA T4)
+  - Apple MacBook (M4)
+
+All figures and results are generated from the provided pipeline.
