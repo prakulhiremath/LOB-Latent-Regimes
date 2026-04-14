@@ -126,9 +126,8 @@ python experiments/v7_final.py
 ```bibtex
 @article{lob_micro_regime_detection_2026,
   title={Early Detection of Latent Micro-Regimes in Limit Order Books},
-  author={Hiremath, Prakul},
+  author={Hiremath, Prakul. & Hiremath, Vruksha},
   year={2026},
-  journal={Reproducible Research in Market Microstructure}
 }
 ```
 
