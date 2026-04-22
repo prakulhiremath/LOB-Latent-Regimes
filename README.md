@@ -8,12 +8,11 @@
 ║   Identifying structural market instability before it surfaces   ║
 ╚══════════════════════════════════════════════════════════════════╝
 ```
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19697687.svg)](https://doi.org/10.5281/zenodo.19697687)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19697687.svg?sanitize=true)](https://doi.org/10.5281/zenodo.19697687)
 ![Method](https://img.shields.io/badge/Method-Trigger%20Based-0078D4?style=flat-square)
 ![Model](https://img.shields.io/badge/Model-HMM-8A2BE2?style=flat-square)
-![Precision](https://img.shields.io/badge/Precision-100%25-D4AF37?style=flat-square)
-![Lead‑Time](https://img.shields.io/badge/Lead--Time-Strictly%20Positive-28A745?style=flat-square)
+![Precision](https://img.shields.io/badge/Precision-100%25%20(eval)-D4AF37?style=flat-square)
+![Lead-Time](https://img.shields.io/badge/Lead--Time-Positive-28A745?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
 <br/>
