@@ -10,7 +10,6 @@
 ```
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19697687.svg)](https://doi.org/10.5281/zenodo.19697687)
-&nbsp;
 ![Method](https://img.shields.io/badge/Method-Trigger%20Based-0078D4?style=flat-square)
 ![Model](https://img.shields.io/badge/Model-HMM-8A2BE2?style=flat-square)
 ![Precision](https://img.shields.io/badge/Precision-100%25-D4AF37?style=flat-square)
