@@ -15,13 +15,6 @@
 ![Lead-Time](https://img.shields.io/badge/Lead--Time-Positive-28A745?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
-<br/>
-
-**Prakul Sunil Hiremath · Vruksha Arun Hiremath**
-
-[📄 Paper (coming soon)](#) &nbsp;·&nbsp; [📦 Code DOI](https://doi.org/10.5281/zenodo.19697687) &nbsp;·&nbsp; [💻 Repository](https://github.com/prakulhiremath/LOB-Latent-Regimes)
-
-<br/>
 
 <img src="assets/detection.gif" width="860" alt="Detection Timeline — Latent regime transitions identified before observable stress"/>
 
