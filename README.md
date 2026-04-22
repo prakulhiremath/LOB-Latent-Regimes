@@ -3,10 +3,10 @@
 <br/>
 
 ```
-╔══════════════════════════════════════════════════════════════════╗
-║   LATENT MICRO-REGIME EARLY DETECTION IN LIMIT ORDER BOOKS       ║
-║   Identifying structural market instability before it surfaces   ║
-╚══════════════════════════════════════════════════════════════════╝
+                    ╔══════════════════════════════════════════════════════════════════╗
+                    ║   LATENT MICRO-REGIME EARLY DETECTION IN LIMIT ORDER BOOKS       ║
+                    ║   Identifying structural market instability before it surfaces   ║
+                    ╚══════════════════════════════════════════════════════════════════╝
 ```
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19697687.svg?sanitize=true)](https://doi.org/10.5281/zenodo.19697687)
 ![Method](https://img.shields.io/badge/Method-Trigger%20Based-0078D4?style=flat-square)
