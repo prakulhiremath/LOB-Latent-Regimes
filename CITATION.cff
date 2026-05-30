@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software or refer to the research in your work, please cite it as below."
+authors:
+  - family-names: "Hiremath"
+    given-names: "Prakul Sunil"
+  - family-names: "Hiremath"
+    given-names: "Vruksha Arun"
+title: "Early Detection of Latent Micro-Regimes in Limit Order Books"
+version: "1.0.0"
+doi: "10.5281/zenodo.19697687"
+date-released: "2026-04-30"
+url: "https://github.com/prakulhiremath/LOB-Latent-Regimes"
+keywords:
+  - "limit-order-book"
+  - "market-microstructure"
+  - "hidden-markov-models"
+  - "regime-detection"
+  - "quantitative-finance"
