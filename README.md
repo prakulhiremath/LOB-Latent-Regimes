@@ -46,17 +46,17 @@ The market moves through three regimes. The critical one is invisible to standar
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│   STATE 0 ──────────────►  STATE 1 ──────────────►  STATE 2    │
+│   STATE 0 ──────────────►  STATE 1 ──────────────►  STATE 2     │
 │                                                                 │
 │   Stable                   Latent Build-up          Stress      │
 │   ─────────                ───────────────          ──────      │
 │   Balanced liquidity       Depth eroding            Price shock │
-│   High resilience          Spread drifting          Visible      │
+│   High resilience          Spread drifting          Visible     │
 │   Equilibrium              ⚠ Hidden instability     Reactive    │
 │                                                                 │
 │                            ◄────── detection window ──────►     │
 │                            ↑                         ↑          │
-│                        our signal fires          stress begins   │
+│                        our signal fires          stress begins  │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -100,8 +100,8 @@ MAX-Fusion Trigger
 ║    HMM               +14.9 steps   100%         43.2%          ║
 ║    Multi-Trigger     +13.1 steps   100%         28.1%          ║
 ╠════════════════════════════════════════════════════════════════╣
-║  ✗ Order Imbalance   −24.8 steps    54.9%        78.7%          ║
-║  ✗ Volatility        −32.0 steps    45.5%        43.3%          ║
+║  ✗ Order Imbalance   −24.8 steps    54.9%        78.7%         ║
+║  ✗ Volatility        −32.0 steps    45.5%        43.3%         ║
 ╚════════════════════════════════════════════════════════════════╝
 ```
 
