@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOB Latent Regimes — Early Detection of Market Micro-Instability</title>
+    <meta name="description" content="Detect latent market stress before it surfaces. A reproducible research framework for identifying structural deterioration in limit order books.">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax for LaTeX rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <style>
+        :root {
+            --accent: #0284c7;
+            --accent-light: #38bdf8;
+            --accent-dark: #0369a1;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+        }
+
+        .font-display {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        /* Math rendering */
+        .math-block {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Code block styling */
+        .code-block {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .code-block code {
+            color: #e2e8f0;
+        }
+
+        .hljs-string { color: #86efac !important; }
+        .hljs-number { color: #fbbf24 !important; }
+        .hljs-literal { color: #818cf8 !important; }
+        .hljs-attr { color: #60a5fa !important; }
+        .hljs-title { color: #38bdf8 !important; }
+        .hljs-comment { color: #64748b !important; }
+
+        /* Architecture diagram */
+        .diagram-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.375rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            color: #475569;
+        }
+
+        /* State diagram */
+        .state-diagram {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin: 2rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #475569;
+        }
+
+        /* Signal card */
+        .signal-card {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.05) 0%, rgba(56, 189, 248, 0.05) 100%);
+            border: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Results table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        thead {
+            background: #f8fafc;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #475569;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .positive-lead { color: var(--success); font-weight: 600; }
+        .negative-lead { color: var(--danger); font-weight: 600; }
+        .precision-perfect { color: var(--success); font-weight: 600; }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #475569;
+            transition: all 0.2s ease;
+        }
+
+        .badge:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(2, 132, 199, 0.05);
+        }
+
+        /* Comparison grid */
+        .comparison-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.375rem;
+            transition: all 0.3s ease;
+        }
+
+        .comparison-item:hover {
+            background: #f1f5f9;
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
+        }
+
+        .comparison-item.success {
+            border-left: 3px solid var(--success);
+        }
+
+        .comparison-item.danger {
+            border-left: 3px solid var(--danger);
+        }
+
+        /* Hero section */
+        .hero {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 6rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .hero-accent {
+            color: var(--accent);
+        }
+
+        /* Section */
+        .section {
+            padding: 4rem 0;
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        .section h3 {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .section p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #475569;
+            margin-bottom: 1rem;
+        }
+
+        .section ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section li {
+            color: #475569;
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            border: 1px solid var(--accent);
+        }
+
+        .btn:hover {
+            background: var(--accent-dark);
+            border-color: var(--accent-dark);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: rgba(2, 132, 199, 0.1);
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 4rem 0;
+        }
+
+        /* Info box */
+        .info-box {
+            background: #f0f9ff;
+            border-left: 3px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 0.375rem;
+            margin: 2rem 0;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border-left: 3px solid var(--warning);
+            padding: 1.5rem;
+            border-radius: 0.375rem;
+            margin: 2rem 0;
+        }
+
+        .info-box strong { color: var(--accent); }
+        .warning-box strong { color: var(--warning); }
+
+        /* Stat boxes */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.375rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #475569;
+            margin-top: 0.5rem;
+        }
+
+        /* Metric chip */
+        .metric-chip {
+            display: inline-block;
+            background: #f0f9ff;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Two-column layout */
+        .comparison-table {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-table {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.6s ease;
+        }
+
+        /* Trigger visualization */
+        .trigger-logic {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: #475569;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="max-w-6xl mx-auto px-6 sm:px-8">
+            <!-- Badges -->
+            <div class="flex flex-wrap gap-2 mb-8">
+                <a href="https://arxiv.org/abs/2604.20949" class="badge" target="_blank" rel="noopener">
+                    📄 arXiv:2604.20949
+                </a>
+                <a href="https://doi.org/10.5281/zenodo.19697687" class="badge" target="_blank" rel="noopener">
+                    🔬 Zenodo
+                </a>
+                <a href="https://github.com/prakulhiremath/LOB-Latent-Regimes" class="badge" target="_blank" rel="noopener">
+                    🔗 GitHub
+                </a>
+                <span class="badge">✓ Reproducible</span>
+                <span class="badge">⚡ Causal</span>
+                <span class="badge">🎯 100% Precision</span>
+            </div>
+
+            <!-- Hero Content -->
+            <div class="max-w-3xl">
+                <h1 class="text-5xl sm:text-6xl font-display font-bold mb-4 text-slate-900">
+                    LOB Latent Regimes
+                </h1>
+                <p class="text-xl text-slate-600 mb-2 font-display font-semibold">
+                    Latent Micro-Regime Early Detection in Limit Order Books
+                </p>
+                <p class="text-2xl font-display font-semibold mb-8">
+                    <span class="text-slate-700">Identify structural market instability</span>
+                    <span class="hero-accent"> before it surfaces</span>
+                </p>
+                <p class="text-lg text-slate-600 mb-8 max-w-2xl leading-relaxed">
+                    A reproducible research framework for detecting latent build-up phases in financial markets. Fires with positive lead-time and 100% precision, exploiting the measurable delay between structural deterioration and observable stress.
+                </p>
+
+                <div class="flex flex-wrap gap-4">
+                    <a href="#framework" class="btn">Learn More</a>
+                    <a href="https://github.com/prakulhiremath/LOB-Latent-Regimes" class="btn btn-outline" target="_blank" rel="noopener">
+                        View on GitHub →
+                    </a>
+                </div>
+
+                <p class="text-sm text-slate-500 mt-6 italic">
+                    ⚠️ Research pipeline. Not a trading strategy. See Scope & Limitations below.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Insight -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <div class="bg-slate-50 border-l-4 border-blue-600 p-8 rounded-sm">
+            <p class="text-lg text-slate-800 font-semibold mb-4">
+                "Market stress does not arrive without warning. It accumulates."
+            </p>
+            <p class="text-slate-700 leading-relaxed">
+                Classical indicators—volatility, order imbalance, spread widening—are <strong>reactive</strong>. By the time they fire, the dislocation has already begun. This research asks a harder question: <em>Can we detect the structural deterioration that precedes observable stress—before it becomes visible in price or spread?</em>
+            </p>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- The Problem -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>The Three Regimes</h2>
+
+        <p>
+            Markets cycle through three distinct states. The critical regime is invisible to standard microstructure monitors.
+        </p>
+
+        <div class="state-diagram">
+<pre>┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  STATE 0 ────────────► STATE 1 ────────────► STATE 2             │
+│                                                                  │
+│  Stable                Latent Build-up        Stress             │
+│  ───────                ───────────────        ──────             │
+│  • Balanced liquidity   • Depth eroding        • Price shock      │
+│  • High resilience      • Spread drifting      • Visible          │
+│  • Equilibrium          • ⚠ Hidden instability • Reactive         │
+│                                                                  │
+│  Observable            INVISIBLE              Observable         │
+│  (past data)           (our signal fires)     (too late)         │
+│                                                                  │
+│              ◄──── detection window ────►                       │
+│              ↑                         ↑                        │
+│         we detect                 stress begins                │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘</pre>
+        </div>
+
+        <p>
+            <strong>The key insight:</strong> The transition from State 1 → State 2 is not instantaneous. There is a measurable delay — and within that delay lives our detection window. We exploit it.
+        </p>
+
+        <div class="info-box">
+            <p>
+                <strong>Why this matters:</strong> Depth erosion precedes spread widening, which precedes price impact. If we detect the book thinning silently, we have time to respond before the visible stress cascade begins.
+            </p>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Detection Framework -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section" id="framework">
+        <h2>Detection Framework</h2>
+
+        <p>
+            Three independent signal channels. One fused trigger. Rising-edge detection instead of thresholds.
+        </p>
+
+        <h3>Signal Channels</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
+            <!-- Channel 1 -->
+            <div class="signal-card">
+                <h4 class="font-bold text-slate-900 mb-3">📊 HMM Posterior Entropy</h4>
+                <p class="text-sm text-slate-700 mb-3">
+                    Uncertainty in regime classification
+                </p>
+                <p class="text-xs text-slate-600">
+                    <strong>Why early:</strong> Rises as the latent state becomes ambiguous, before the transition to stress solidifies.
+                </p>
+            </div>
+
+            <!-- Channel 2 -->
+            <div class="signal-card">
+                <h4 class="font-bold text-slate-900 mb-3">📉 Temporal Depth Drift</h4>
+                <p class="text-sm text-slate-700 mb-3">
+                    Recursive tracking of LOB depth erosion
+                </p>
+                <p class="text-xs text-slate-600">
+                    <strong>Why early:</strong> Captures slow structural decay invisible to snapshot metrics. Liquid book → thin book is the first visible sign.
+                </p>
+            </div>
+
+            <!-- Channel 3 -->
+            <div class="signal-card">
+                <h4 class="font-bold text-slate-900 mb-3">⚖️ Order Flow Toxicity</h4>
+                <p class="text-sm text-slate-700 mb-3">
+                    Imbalance between informed and uninformed flow
+                </p>
+                <p class="text-xs text-slate-600">
+                    <strong>Why early:</strong> Signals adverse selection building in the book before visible spread impact.
+                </p>
+            </div>
+        </div>
+
+        <h3>Trigger Logic</h3>
+
+        <div class="trigger-logic">
+<pre>MAX-Fusion Trigger
+├── Rising-edge detection
+│   └─ Onset of change, not absolute level
+│   └─ Bypasses noise floor that kills threshold methods
+│
+├── Cross-channel aggregation
+│   └─ Fire when ANY channel breaches threshold
+│
+└── Early-detection constraint
+    └─ Signal must precede stress (τ < σ)</pre>
+        </div>
+
+        <div class="info-box mt-8">
+            <p>
+                <strong>Key design choice:</strong> We don't ask "is the spread wide?" We ask "is it getting wider <em>right now</em>?" This rising-edge approach bypasses the noise floor that kills absolute-threshold methods on real microstructure data.
+            </p>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Results -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Empirical Results</h2>
+
+        <p>
+            Evaluated under full causal guarantees. No lookahead bias. No global statistics leaked to the predictor.
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Lead-Time (steps)</th>
+                    <th>Precision</th>
+                    <th>Coverage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background: rgba(16, 185, 129, 0.05);">
+                    <td><strong>★ Adaptive Trigger</strong></td>
+                    <td class="positive-lead">+18.6</td>
+                    <td class="precision-perfect">100%</td>
+                    <td>52.6%</td>
+                </tr>
+                <tr>
+                    <td>HMM</td>
+                    <td class="positive-lead">+14.9</td>
+                    <td class="precision-perfect">100%</td>
+                    <td>43.2%</td>
+                </tr>
+                <tr>
+                    <td>Multi-Trigger</td>
+                    <td class="positive-lead">+13.1</td>
+                    <td class="precision-perfect">100%</td>
+                    <td>28.1%</td>
+                </tr>
+                <tr style="border-top: 2px solid #e2e8f0;">
+                    <td>Order Imbalance</td>
+                    <td class="negative-lead">−24.8</td>
+                    <td>54.9%</td>
+                    <td>78.7%</td>
+                </tr>
+                <tr>
+                    <td>Volatility</td>
+                    <td class="negative-lead">−32.0</td>
+                    <td>45.5%</td>
+                    <td>43.3%</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info-box mt-8">
+            <p>
+                <strong>Reading the table:</strong> Positive lead-time means the signal fires <em>before</em> stress begins. Baseline methods are strictly negative—they lag. 100% precision means zero false starts during the latent phase—every trigger is temporally valid.
+            </p>
+        </div>
+
+        <h3>Key Findings</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+            <div class="comparison-item success">
+                <h4 class="font-bold text-slate-900 mb-2">✓ Latent Instability Is Real</h4>
+                <p class="text-sm text-slate-700">
+                    Market regimes structurally deteriorate before visible deterioration. Consistent empirical signature across tested sessions.
+                </p>
+            </div>
+
+            <div class="comparison-item success">
+                <h4 class="font-bold text-slate-900 mb-2">✓ Depth Erosion Is Most Reliable</h4>
+                <p class="text-sm text-slate-700">
+                    Depth decay in the LOB precedes spread widening and price impact. Book thinning is the earliest signal.
+                </p>
+            </div>
+
+            <div class="comparison-item success">
+                <h4 class="font-bold text-slate-900 mb-2">✓ HMM Entropy Works</h4>
+                <p class="text-sm text-slate-700">
+                    Posterior entropy is a structural stress barometer. Model uncertainty itself is informative.
+                </p>
+            </div>
+
+            <div class="comparison-item success">
+                <h4 class="font-bold text-slate-900 mb-2">✓ Rising-Edge Beats Thresholds</h4>
+                <p class="text-sm text-slate-700">
+                    Onset of deterioration carries more information than magnitude. No false starts from noise.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Reproducibility -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Reproducibility Guarantees</h2>
+
+        <p>
+            This pipeline was engineered to be trusted. Every result is verifiable and repeatable.
+        </p>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <p class="stat-label">✓ Causal</p>
+                <p class="stat-value" style="font-size: 1.5rem;">No Lookahead</p>
+            </div>
+            <div class="stat-box">
+                <p class="stat-label">✓ Rolling Norm</p>
+                <p class="stat-value" style="font-size: 1.5rem;">No Data Leakage</p>
+            </div>
+            <div class="stat-box">
+                <p class="stat-label">✓ HMM Re-fit</p>
+                <p class="stat-value" style="font-size: 1.5rem;">Periodic</p>
+            </div>
+            <div class="stat-box">
+                <p class="stat-label">✓ Deterministic</p>
+                <p class="stat-value" style="font-size: 1.5rem;">Fixed Seeds</p>
+            </div>
+            <div class="stat-box">
+                <p class="stat-label">✓ Validated</p>
+                <p class="stat-value" style="font-size: 1.5rem;">Colab + M4</p>
+            </div>
+        </div>
+
+        <div class="warning-box mt-8">
+            <p>
+                <strong>Causality verification:</strong> Rolling normalization only—no global statistics computed on future data. HMM re-fit every evaluation window. All results are exact under deterministic seeds across NVIDIA T4 (Google Colab) and Apple Silicon (M4 Pro/Max).
+            </p>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Quickstart -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Quickstart</h2>
+
+        <h3>Clone & Install</h3>
+
+        <div class="code-block mb-8"><pre><code class="language-bash">git clone https://github.com/prakulhiremath/LOB-Latent-Regimes.git
+cd LOB-Latent-Regimes
+pip install -r requirements.txt</code></pre></div>
+
+        <h3>Run the Final Pipeline</h3>
+
+        <div class="code-block mb-8"><pre><code class="language-bash">python experiments/v7_final.py</code></pre></div>
+
+        <p>Expected output:</p>
+
+        <div class="bg-slate-900 text-slate-100 p-6 rounded font-mono text-sm border border-slate-700 mb-8">
+<pre>[INFO] Loading normalized LOB snapshots...
+[INFO] Running causal evaluation pipeline...
+[INFO] Fitting HMM with rolling windows...
+[INFO] Computing signal channels (entropy, depth, toxicity)...
+[INFO] Fusing triggers with MAX aggregation...
+[INFO] Computing lead-time and precision metrics...
+
+╔════════════════════════════════════════════════════════════════╗
+║  Adaptive Trigger       +18.6 steps  100% precision  52.6%    ║
+║  HMM                    +14.9 steps  100% precision  43.2%    ║
+║  Multi-Trigger          +13.1 steps  100% precision  28.1%    ║
+╚════════════════════════════════════════════════════════════════╝</pre>
+        </div>
+
+        <h3>Explore Individual Signals</h3>
+
+        <div class="code-block"><pre><code class="language-bash">jupyter notebook notebooks/analysis.ipynb</code></pre></div>
+
+        <p>Contains: Signal decomposition, lead-time distributions, regime transition visualizations, baseline comparisons.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Repository Structure -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Repository Structure</h2>
+
+        <div class="diagram-box">
+<pre>LOB-Latent-Regimes/
+│
+├── experiments/
+│   ├── v1_baseline.py           # Initial HMM formulation
+│   ├── v2_entropy.py            # Posterior entropy tracking
+│   ├── v3_depth_drift.py        # Temporal depth signal
+│   ├── v4_triggers.py           # Trigger logic development
+│   ├── v5_fusion.py             # MAX-fusion framework
+│   ├── v6_rising_edge.py        # Rising-edge detection
+│   └── v7_final.py              # ★ Production pipeline
+│
+├── notebooks/
+│   └── analysis.ipynb           # Experiment analysis + figures
+│
+├── results/
+│   ├── figures/                 # High-resolution performance plots
+│   └── summary.txt              # Quantified results
+│
+├── paper/                       # Technical manuscript
+├── assets/                      # Visualizations, GIFs, detection timeline
+├── requirements.txt             # Dependencies
+└── README.md</pre>
+        </div>
+
+        <h3>Development Progression</h3>
+
+        <p>The pipeline evolved through 7 versions, each adding precision:</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Version</th>
+                    <th>Focus</th>
+                    <th>Key Innovation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>v1</code></td>
+                    <td>Baseline HMM</td>
+                    <td>Three-state Markov model for regime classification</td>
+                </tr>
+                <tr>
+                    <td><code>v2</code></td>
+                    <td>Entropy Signal</td>
+                    <td>Posterior entropy as stress barometer</td>
+                </tr>
+                <tr>
+                    <td><code>v3</code></td>
+                    <td>Depth Drift</td>
+                    <td>Temporal tracking of LOB depth erosion</td>
+                </tr>
+                <tr>
+                    <td><code>v4</code></td>
+                    <td>Trigger Design</td>
+                    <td>Individual signal thresholds</td>
+                </tr>
+                <tr>
+                    <td><code>v5</code></td>
+                    <td>Multi-Signal Fusion</td>
+                    <td>MAX aggregation across channels</td>
+                </tr>
+                <tr>
+                    <td><code>v6</code></td>
+                    <td>Rising-Edge</td>
+                    <td>Onset detection instead of absolute levels</td>
+                </tr>
+                <tr style="background: rgba(16, 185, 129, 0.05);">
+                    <td><code>★ v7</code></td>
+                    <td>Final Pipeline</td>
+                    <td>Production configuration, full causal guarantees</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Scope & Limitations -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Scope & Limitations</h2>
+
+        <p>
+            Be precise about what this is and is not.
+        </p>
+
+        <div class="comparison-table">
+            <div class="comparison-item">
+                <h4 class="font-bold text-green-700 mb-3">✓ This Repo IS</h4>
+                <ul class="space-y-2 text-sm text-slate-700">
+                    <li>Detection framework for latent regime transitions</li>
+                    <li>Empirical study of LOB microstructure</li>
+                    <li>Reproducible research pipeline</li>
+                    <li>Contribution to predictive market microstructure</li>
+                    <li>Academic exercise in causal signal processing</li>
+                </ul>
+            </div>
+
+            <div class="comparison-item danger">
+                <h4 class="font-bold text-red-700 mb-3">✗ This Repo IS NOT</h4>
+                <ul class="space-y-2 text-sm text-slate-700">
+                    <li>A trading strategy or system</li>
+                    <li>Optimised for execution latency</li>
+                    <li>A production trading system</li>
+                    <li>Financial advice or investment guidance</li>
+                    <li>Tested in live market conditions</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="warning-box mt-8">
+            <p>
+                <strong>Important:</strong> This is research code. Backtesting results do not guarantee forward performance. Live trading requires rigorous validation, risk management, and regulatory compliance beyond the scope of this work.
+            </p>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Contributions -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Research Contributions</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="signal-card">
+                <h4 class="font-bold text-slate-900 mb-2">Causal Formulation</h4>
+                <p class="text-sm text-slate-700">
+                    Model latent build-up → stress transition as a three-state latent process with explicit temporal separation.
+                </p>
+            </div>
+
+            <div class="signal-card">
+                <h4 class="font-bold text-slate-900 mb-2">Temporal Drift Identification</h4>
+                <p class="text-sm text-slate-700">
+                    Subtle depth and spread drift as leading precursor to liquidity voids. Recursive tracking without lookahead.
+                </p>
+            </div>
+
+            <div class="signal-card">
+                <h4 class="font-bold text-slate-900 mb-2">Novel Detection Logic</h4>
+                <p class="text-sm text-slate-700">
+                    MAX-fusion + rising-edge trigger for sub-millisecond microstructure data. Positive lead-time guarantee.
+                </p>
+            </div>
+
+            <div class="signal-card">
+                <h4 class="font-bold text-slate-900 mb-2">Empirical Demonstration</h4>
+                <p class="text-sm text-slate-700">
+                    Strictly positive lead-time over reactive benchmarks across all evaluated regimes. 100% precision.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Citation -->
+    <div class="max-w-6xl mx-auto px-6 sm:px-8 section">
+        <h2>Citation</h2>
+
+        <div class="code-block">
+<pre><code>@article{hiremath2026lob,
+  title   = {Early Detection of Latent Micro-Regimes in Limit Order Books},
+  author  = {Hiremath, Prakul Sunil and Hiremath, Vruksha Arun},
+  year    = {2026},
+  doi     = {10.5281/zenodo.19697687}
+}</code></pre>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Footer -->
+    <div class="bg-slate-50 border-t border-slate-200 py-12">
+        <div class="max-w-6xl mx-auto px-6 sm:px-8">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-12">
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-4">Resources</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://arxiv.org/abs/2604.20949" class="text-blue-600 hover:underline" target="_blank" rel="noopener">arXiv Paper</a></li>
+                        <li><a href="https://github.com/prakulhiremath/LOB-Latent-Regimes" class="text-blue-600 hover:underline" target="_blank" rel="noopener">GitHub Repository</a></li>
+                        <li><a href="https://doi.org/10.5281/zenodo.19697687" class="text-blue-600 hover:underline" target="_blank" rel="noopener">Zenodo Archive</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-4">Explore</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#framework" class="text-blue-600 hover:underline">Detection Framework</a></li>
+                        <li><a href="https://github.com/prakulhiremath/LOB-Latent-Regimes/blob/main/notebooks/analysis.ipynb" class="text-blue-600 hover:underline" target="_blank" rel="noopener">Analysis Notebook</a></li>
+                        <li><a href="https://github.com/prakulhiremath/LOB-Latent-Regimes/issues" class="text-blue-600 hover:underline" target="_blank" rel="noopener">Report Issues</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-slate-900 mb-4">Connect</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="mailto:prakulhiremath03@gmail.com" class="text-blue-600 hover:underline">Email</a></li>
+                        <li><a href="https://github.com/prakulhiremath" class="text-blue-600 hover:underline" target="_blank" rel="noopener">GitHub Profile</a></li>
+                        <li><a href="https://arxiv.org/search/?query=hiremath&searchtype=author" class="text-blue-600 hover:underline" target="_blank" rel="noopener">More Papers</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-200 pt-8">
+                <p class="text-sm text-slate-600 text-center mb-4">
+                    <strong>LOB Latent Regimes</strong> — Early Detection of Structural Market Instability
+                </p>
+                <p class="text-xs text-slate-500 text-center">
+                    MIT License · Reproducible Research Pipeline · <a href="https://github.com/prakulhiremath/LOB-Latent-Regimes" class="text-blue-600 hover:underline" target="_blank" rel="noopener">Open Source</a>
+                </p>
+                <p class="text-xs text-slate-500 text-center mt-4">
+                    <em>"If the signal fires before the storm — it worked."</em>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Highlight code blocks
+        document.querySelectorAll('.code-block pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Fade in on load
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
+</body>
+</html>
