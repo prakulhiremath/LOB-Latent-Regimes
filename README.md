@@ -232,3 +232,6 @@ Built for **reproducible research** in quantitative finance and machine learning
 *If the signal fires before the storm — it worked.*
 
 </div>
+
+
+<!-- GitHub Pages redeploy -->
